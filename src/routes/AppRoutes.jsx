@@ -6,6 +6,8 @@ import {
 import Dashboard from "../pages/Dashboard";
 import DeploymentDetails from "../pages/DeploymentDetails";
 import NotFound from "../pages/NotFound";
+import CreateDeployment
+from "../pages/CreateDeployment";
 
 export default function AppRoutes() {
   return (
@@ -19,6 +21,12 @@ export default function AppRoutes() {
         path="/deployments/:id"
         element={
           <DeploymentDetails />
+        }
+      />
+      <Route
+        path="/deploy"
+        element={
+          <CreateDeployment />
         }
       />
 

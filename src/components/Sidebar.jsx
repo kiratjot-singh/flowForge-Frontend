@@ -12,6 +12,18 @@ export default function Sidebar() {
       "
     >
       <Link
+        to="/deploy"
+        className="
+          block
+          p-3
+          rounded-xl
+          hover:bg-zinc-900
+        "
+      >
+        New Deployment
+      </Link>
+
+      <Link
         to="/"
         className="
           block

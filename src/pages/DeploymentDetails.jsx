@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-
+import { useRef } from "react";
 import MainLayout from "../layouts/MainLayout";
 import StatusBadge from "../components/StatusBadge";
 
 export default function DeploymentDetails() {
   const { id } = useParams();
+  
 
   const [deployment, setDeployment] =
     useState(null);
@@ -50,7 +51,7 @@ export default function DeploymentDetails() {
 
       const data =
         await response.json();
-        console.log(data);
+      
         
 
       setDeployment(
@@ -112,6 +113,145 @@ export default function DeploymentDetails() {
       </div>
 
       {/* Info Card */}
+
+      <div
+  className="
+    grid
+    md:grid-cols-2
+    gap-4
+    mt-8
+  "
+>
+
+  <div
+    className="
+      bg-zinc-900
+      border
+      border-zinc-800
+      rounded-2xl
+      p-5
+    "
+  >
+    <p className="text-zinc-500">
+      Repository
+    </p>
+
+    <p className="mt-2 break-all">
+      {deployment?.repo_url}
+    </p>
+  </div>
+
+  <div
+    className="
+      bg-zinc-900
+      border
+      border-zinc-800
+      rounded-2xl
+      p-5
+    "
+  >
+    <p className="text-zinc-500">
+      Branch
+    </p>
+
+    <p className="mt-2">
+      {deployment?.branch}
+    </p>
+  </div>
+
+</div>
+<div
+  className="
+    grid
+    md:grid-cols-2
+    gap-4
+    mt-4
+  "
+>
+
+  <div
+    className="
+      bg-zinc-900
+      border
+      border-zinc-800
+      rounded-2xl
+      p-5
+    "
+  >
+    <p className="text-zinc-500">
+      Commit SHA
+    </p>
+
+    <p className="mt-2">
+      {deployment?.commit_sha}
+    </p>
+  </div>
+
+  <div
+    className="
+      bg-zinc-900
+      border
+      border-zinc-800
+      rounded-2xl
+      p-5
+    "
+  >
+    <p className="text-zinc-500">
+      Output Directory
+    </p>
+
+    <p className="mt-2">
+      {
+        deployment?.output_directory
+      }
+    </p>
+  </div>
+
+</div>
+<div
+  className="
+    bg-zinc-900
+    border
+    border-zinc-800
+    rounded-2xl
+    p-5
+    mt-4
+  "
+>
+  <p className="text-zinc-500">
+    Deployment URL
+  </p>
+
+  <div
+    className="
+      mt-3
+      flex
+      justify-between
+      items-center
+    "
+  >
+    <code>
+      {`http://localhost:3000/api/v1/deployments/${id}`}
+    </code>
+
+    <button
+      onClick={() =>
+        navigator.clipboard.writeText(
+          `http://localhost:3000/api/v1/deployments/${id}`
+        )
+      }
+      className="
+        px-3
+        py-2
+        rounded-xl
+        bg-white
+        text-black
+      "
+    >
+      Copy
+    </button>
+  </div>
+</div>
 
       <div
         className="
