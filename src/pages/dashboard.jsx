@@ -6,6 +6,7 @@ import ActivityFeed from "../components/ActivityFeed";
 import MainLayout from "../layouts/MainLayout";
 import StatCard from "../components/StatCard";
 import DeploymentCard from "../components/DeploymentCard";
+import api from "../services/api";
 
 export default function Dashboard() {
   const [deployments, setDeployments] = useState([]);
@@ -20,9 +21,8 @@ export default function Dashboard() {
 
   async function fetchDeployments() {
     try {
-      const response = await fetch("http://localhost:3000/api/v1/deployments");
-      const data = await response.json();
-      setDeployments(data.deployments || []);
+      const response = await api.get("/deployments");
+      setDeployments(response.data.deployments || []);
     } catch (error) {
       console.error(error);
     } finally {

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { GitBranch, GitCommit, ArrowRight, Loader2, GitFork } from "lucide-react";
 import toast from "react-hot-toast";
 import MainLayout from "../layouts/MainLayout";
+import api from "../services/api";
 
 export default function CreateDeployment() {
   const [repoUrl, setRepoUrl] = useState("");
@@ -16,26 +17,15 @@ export default function CreateDeployment() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "http://localhost:3000/api/v1/webhooks/github",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            repository: {
-              clone_url: repoUrl
-            },
-            ref: `refs/heads/${branch}`,
-            head_commit: {
-              id: commitSha || crypto.randomUUID()
-            }
-          })
+      const response = await api.post("/webhooks/github", {
+        repository: {
+          clone_url: repoUrl
+        },
+        ref: `refs/heads/${branch}`,
+        head_commit: {
+          id: commitSha || crypto.randomUUID()
         }
-      );
-
-      if (!response.ok) throw new Error("Network response was not ok");
+      });
 
       toast.success("Deployment triggered successfully!");
       navigate("/");

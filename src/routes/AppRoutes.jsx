@@ -1,39 +1,50 @@
-import {
-  Routes,
-  Route
-} from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 import Dashboard from "../pages/Dashboard";
 import DeploymentDetails from "../pages/DeploymentDetails";
 import NotFound from "../pages/NotFound";
-import CreateDeployment
-from "../pages/CreateDeployment";
+import CreateDeployment from "../pages/CreateDeployment";
+import Welcome from "../pages/Welcome";
+import Login from "../pages/Login";
+import Signup from "../pages/Signup";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 export default function AppRoutes() {
   return (
     <Routes>
+      {/* Public Routes */}
+      <Route path="/welcome" element={<Welcome />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+
+      {/* Protected Routes */}
       <Route
         path="/"
-        element={<Dashboard />}
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
       />
-
       <Route
         path="/deployments/:id"
         element={
-          <DeploymentDetails />
+          <ProtectedRoute>
+            <DeploymentDetails />
+          </ProtectedRoute>
         }
       />
       <Route
         path="/deploy"
         element={
-          <CreateDeployment />
+          <ProtectedRoute>
+            <CreateDeployment />
+          </ProtectedRoute>
         }
       />
 
-      <Route
-        path="*"
-        element={<NotFound />}
-      />
+      {/* Fallback */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

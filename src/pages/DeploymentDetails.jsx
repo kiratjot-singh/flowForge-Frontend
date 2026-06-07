@@ -7,6 +7,7 @@ import {
 import toast from "react-hot-toast";
 import MainLayout from "../layouts/MainLayout";
 import StatusBadge from "../components/StatusBadge";
+import api from "../services/api";
 
 export default function DeploymentDetails() {
   const { id } = useParams();
@@ -39,11 +40,10 @@ export default function DeploymentDetails() {
 
   async function fetchDeployment() {
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/v1/deployments/${id}/details`
+      const response = await api.get(
+        `/deployments/${id}/details`
       );
-      const data = await response.json();
-      setDeployment(data);
+      setDeployment(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -51,11 +51,10 @@ export default function DeploymentDetails() {
 
   async function fetchLogs() {
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/v1/deployments/${id}/logs`
+      const response = await api.get(
+        `/deployments/${id}/logs`
       );
-      const data = await response.json();
-      setLogs(data.logs || []);
+      setLogs(response.data.logs || []);
     } catch (error) {
       console.error(error);
     } finally {
