@@ -1,7 +1,8 @@
+import { Loader2, CheckCircle, AlertCircle, Clock } from "lucide-react";
+
 export default function StatusBadge({
   status
 }) {
-
   if (status === "RUNNING") {
     return (
       <div
@@ -13,23 +14,16 @@ export default function StatusBadge({
           py-1
           rounded-full
           border
-          border-blue-500/20
-          bg-blue-500/10
-          text-blue-400
-          text-sm
-          font-medium
+          border-sky-500/30
+          bg-sky-500/10
+          text-sky-400
+          text-xs
+          font-semibold
+          tracking-wide
+          shadow-[0_0_10px_-2px_rgba(14,165,233,0.15)]
         "
       >
-        <div
-          className="
-            h-2
-            w-2
-            rounded-full
-            bg-blue-400
-            animate-pulse
-          "
-        />
-
+        <Loader2 className="h-3 w-3 animate-spin" />
         RUNNING
       </div>
     );
@@ -39,17 +33,23 @@ export default function StatusBadge({
     return (
       <div
         className="
+          flex
+          items-center
+          gap-2
           px-3
           py-1
           rounded-full
           border
-          border-green-500/20
-          bg-green-500/10
-          text-green-400
-          text-sm
-          font-medium
+          border-emerald-500/30
+          bg-emerald-500/10
+          text-emerald-400
+          text-xs
+          font-semibold
+          tracking-wide
+          shadow-[0_0_10px_-2px_rgba(16,185,129,0.15)]
         "
       >
+        <CheckCircle className="h-3 w-3" />
         SUCCESS
       </div>
     );
@@ -59,17 +59,23 @@ export default function StatusBadge({
     return (
       <div
         className="
+          flex
+          items-center
+          gap-2
           px-3
           py-1
           rounded-full
           border
-          border-red-500/20
-          bg-red-500/10
-          text-red-400
-          text-sm
-          font-medium
+          border-rose-500/30
+          bg-rose-500/10
+          text-rose-400
+          text-xs
+          font-semibold
+          tracking-wide
+          shadow-[0_0_10px_-2px_rgba(244,63,94,0.15)]
         "
       >
+        <AlertCircle className="h-3 w-3" />
         FAILED
       </div>
     );
@@ -78,17 +84,23 @@ export default function StatusBadge({
   return (
     <div
       className="
+        flex
+        items-center
+        gap-2
         px-3
         py-1
         rounded-full
         border
-        border-yellow-500/20
-        bg-yellow-500/10
-        text-yellow-400
-        text-sm
-        font-medium
+        border-amber-500/30
+        bg-amber-500/10
+        text-amber-400
+        text-xs
+        font-semibold
+        tracking-wide
+        shadow-[0_0_10px_-2px_rgba(245,158,11,0.15)]
       "
     >
+      <Clock className="h-3 w-3 animate-pulse" />
       PENDING
     </div>
   );
