@@ -1,39 +1,42 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GitBranch, GitCommit, ArrowRight, Loader2, GitFork } from "lucide-react";
+import { GitBranch, GitFork, ArrowRight, Loader2, Info } from "lucide-react";
 import toast from "react-hot-toast";
 import MainLayout from "../layouts/MainLayout";
 import api from "../services/api";
 
 export default function CreateDeployment() {
+  const [name, setName] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
   const [branch, setBranch] = useState("main");
-  const [commitSha, setCommitSha] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  async function handleDeploy(e) {
+  async function handleCreateProject(e) {
     e.preventDefault();
+    if (!name.trim()) {
+      toast.error("Project name is required");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await api.post("/webhooks/github", {
-        repository: {
-          clone_url: repoUrl
-        },
-        ref: `refs/heads/${branch}`,
-        head_commit: {
-          id: commitSha || crypto.randomUUID()
-        }
+      const response = await api.post("/projects", {
+        name,
+        repoUrl,
+        branch
       });
 
-      toast.success("Deployment triggered successfully!");
-      navigate("/");
-      setRepoUrl("");
-      setCommitSha("");
+      if (response.data?.success) {
+        toast.success("Project created and deployment triggered!");
+        navigate("/");
+      } else {
+        toast.error(response.data?.message || "Failed to create project");
+      }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to start deployment. Check server status.");
+      toast.error(error.response?.data?.message || "Failed to create project. Check server status.");
     } finally {
       setLoading(false);
     }
@@ -43,14 +46,14 @@ export default function CreateDeployment() {
     <MainLayout>
       <div className="max-w-2xl">
         <h1 className="text-3xl font-extrabold tracking-tight text-white md:text-4xl">
-          Create New Deployment
+          Create New Project
         </h1>
         <p className="text-zinc-400 text-sm mt-1.5">
-          Deploy any GitHub repository instantly with customizable branches and commit options
+          Connect your GitHub repository and branch to FlowForge to configure automated cloud environments
         </p>
 
         <form
-          onSubmit={handleDeploy}
+          onSubmit={handleCreateProject}
           className="
             mt-8
             bg-zinc-900/40
@@ -64,6 +67,43 @@ export default function CreateDeployment() {
             shadow-xl
           "
         >
+          {/* Project Name Input */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider">
+              Project Name
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+                <Info className="h-4.5 w-4.5" />
+              </div>
+              <input
+                type="text"
+                placeholder="e.g. Netflix Clone"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="
+                  w-full
+                  bg-zinc-950/60
+                  focus:bg-zinc-950
+                  border
+                  border-zinc-800
+                  focus:border-indigo-500/50
+                  rounded-xl
+                  pl-11
+                  pr-4
+                  py-3
+                  text-zinc-200
+                  placeholder-zinc-650
+                  text-sm
+                  outline-none
+                  transition-all
+                  duration-200
+                "
+                required
+              />
+            </div>
+          </div>
+
           {/* Repository URL Input */}
           <div className="space-y-2">
             <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider">
@@ -104,78 +144,39 @@ export default function CreateDeployment() {
             </span>
           </div>
 
-          {/* Branch and Commit Fields Grid */}
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Branch Input */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                Branch
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
-                  <GitBranch className="h-4.5 w-4.5" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="main"
-                  value={branch}
-                  onChange={(e) => setBranch(e.target.value)}
-                  className="
-                    w-full
-                    bg-zinc-950/60
-                    focus:bg-zinc-950
-                    border
-                    border-zinc-800
-                    focus:border-indigo-500/50
-                    rounded-xl
-                    pl-11
-                    pr-4
-                    py-3
-                    text-zinc-200
-                    placeholder-zinc-650
-                    text-sm
-                    outline-none
-                    transition-all
-                    duration-200
-                  "
-                />
+          {/* Branch Input */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider">
+              Branch
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+                <GitBranch className="h-4.5 w-4.5" />
               </div>
-            </div>
-
-            {/* Commit SHA Input */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                Commit SHA (Optional)
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
-                  <GitCommit className="h-4.5 w-4.5" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="e.g. a7d8e23"
-                  value={commitSha}
-                  onChange={(e) => setCommitSha(e.target.value)}
-                  className="
-                    w-full
-                    bg-zinc-950/60
-                    focus:bg-zinc-950
-                    border
-                    border-zinc-800
-                    focus:border-indigo-500/50
-                    rounded-xl
-                    pl-11
-                    pr-4
-                    py-3
-                    text-zinc-200
-                    placeholder-zinc-650
-                    text-sm
-                    outline-none
-                    transition-all
-                    duration-200
-                  "
-                />
-              </div>
+              <input
+                type="text"
+                placeholder="main"
+                value={branch}
+                onChange={(e) => setBranch(e.target.value)}
+                className="
+                  w-full
+                  bg-zinc-950/60
+                  focus:bg-zinc-950
+                  border
+                  border-zinc-800
+                  focus:border-indigo-500/50
+                  rounded-xl
+                  pl-11
+                  pr-4
+                  py-3
+                  text-zinc-200
+                  placeholder-zinc-650
+                  text-sm
+                  outline-none
+                  transition-all
+                  duration-200
+                "
+              />
             </div>
           </div>
 
@@ -190,7 +191,7 @@ export default function CreateDeployment() {
                 rounded-xl
                 bg-indigo-650
                 hover:bg-indigo-500
-                disabled:bg-indigo-800/40
+                disabled:bg-indigo-880/40
                 disabled:text-zinc-500
                 text-white
                 text-sm
@@ -210,11 +211,11 @@ export default function CreateDeployment() {
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Deploying...
+                  Creating Project...
                 </>
               ) : (
                 <>
-                  Deploy Project
+                  Create Project
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}

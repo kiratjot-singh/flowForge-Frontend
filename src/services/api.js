@@ -1,7 +1,12 @@
-import axios from "axios";
+import axiosInstance from "axios";
 
-const api = axios.create({
-  baseURL: "http://localhost:3000/api/v1"
+export const getBackendHost = () => {
+  const apiURL = import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
+  return apiURL.replace(/\/api\/v1\/?$/, "");
+};
+
+const api = axiosInstance.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1"
 });
 
 api.interceptors.request.use((config) => {

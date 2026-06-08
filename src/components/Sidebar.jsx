@@ -44,7 +44,7 @@ export default function Sidebar() {
         `}
       >
         <LayoutDashboard className="h-4 w-4" />
-        Deployments
+        Projects
       </Link>
 
       <Link
@@ -66,7 +66,7 @@ export default function Sidebar() {
         `}
       >
         <PlusCircle className="h-4 w-4" />
-        New Deployment
+        New Project
       </Link>
     </aside>
   );

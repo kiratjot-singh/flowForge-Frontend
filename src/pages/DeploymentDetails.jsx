@@ -7,7 +7,7 @@ import {
 import toast from "react-hot-toast";
 import MainLayout from "../layouts/MainLayout";
 import StatusBadge from "../components/StatusBadge";
-import api from "../services/api";
+import api, { getBackendHost } from "../services/api";
 
 export default function DeploymentDetails() {
   const { id } = useParams();
@@ -63,7 +63,7 @@ export default function DeploymentDetails() {
   }
 
   const handleCopyUrl = () => {
-    navigator.clipboard.writeText(`http://localhost:3000/api/v1/deployments/${id}`);
+    navigator.clipboard.writeText(`${getBackendHost()}/api/v1/deployments/${id}`);
     toast.success("URL copied to clipboard!");
   };
 
@@ -166,7 +166,7 @@ export default function DeploymentDetails() {
           </button>
 
           <a
-            href={`http://localhost:3000/api/v1/deployments/${id}`}
+            href={`${getBackendHost()}/api/v1/deployments/${id}`}
             target="_blank"
             rel="noreferrer"
             className="

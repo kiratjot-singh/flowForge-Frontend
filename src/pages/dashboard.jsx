@@ -1,48 +1,56 @@
 import { useEffect, useState } from "react";
-import { Search, Server, Plus, Loader2 } from "lucide-react";
+import { Search, FolderGit, Plus, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import ActivityFeed from "../components/ActivityFeed";
 import MainLayout from "../layouts/MainLayout";
-import StatCard from "../components/StatCard";
-import DeploymentCard from "../components/DeploymentCard";
+import StatCard from "../components/statCard";
+import ProjectCard from "../components/ProjectCard";
 import api from "../services/api";
 
 export default function Dashboard() {
+  const [projects, setProjects] = useState([]);
   const [deployments, setDeployments] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchDeployments();
-    const interval = setInterval(fetchDeployments, 3000);
+    fetchDashboardData();
+    const interval = setInterval(fetchDashboardData, 3000);
     return () => clearInterval(interval);
   }, []);
 
-  async function fetchDeployments() {
+  async function fetchDashboardData() {
     try {
-      const response = await api.get("/deployments");
-      setDeployments(response.data.deployments || []);
+      const [projectsResponse, deploymentsResponse] = await Promise.all([
+        api.get("/projects"),
+        api.get("/deployments")
+      ]);
+      setProjects(projectsResponse.data.projects || []);
+      setDeployments(deploymentsResponse.data.deployments || []);
     } catch (error) {
-      console.error(error);
+      console.error("Failed to load dashboard data:", error);
     } finally {
       setLoading(false);
     }
   }
 
-  const filteredDeployments = deployments.filter((deployment) => {
+  const filteredProjects = projects.filter((project) => {
     const query = search.toLowerCase();
     return (
-      deployment.id?.toLowerCase().includes(query) ||
-      deployment.repo_url?.toLowerCase().includes(query) ||
-      deployment.branch?.toLowerCase().includes(query)
+      project.name?.toLowerCase().includes(query) ||
+      project.repo_url?.toLowerCase().includes(query) ||
+      project.branch?.toLowerCase().includes(query)
     );
   });
 
-  const total = deployments.length;
-  const success = deployments.filter(d => d.status === "SUCCESS").length;
-  const failed = deployments.filter(d => d.status === "FAILED").length;
-  const running = deployments.filter(d => d.status === "RUNNING").length;
+  // Calculate statistics based on project's latest deployment status
+  const total = projects.length;
+  const success = projects.filter(p => p.latest_deployment_status === "SUCCESS").length;
+  const failed = projects.filter(p => p.latest_deployment_status === "FAILED").length;
+  const running = projects.filter(p => 
+    p.latest_deployment_status === "RUNNING" || p.latest_deployment_status === "PENDING"
+  ).length;
 
   if (loading) {
     return (
@@ -88,11 +96,11 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-white md:text-4xl">
-            Deployments
+            Projects
           </h1>
           <p className="text-zinc-400 text-sm mt-1.5 flex items-center gap-1.5">
-            <Server className="h-4 w-4 text-zinc-500" />
-            Monitor and trigger your FlowForge cloud applications
+            <FolderGit className="h-4 w-4 text-zinc-500" />
+            Manage and monitor your FlowForge cloud applications
           </p>
         </div>
 
@@ -104,7 +112,7 @@ export default function Dashboard() {
             gap-2
             px-4.5
             py-2.5
-            bg-indigo-600
+            bg-indigo-650
             hover:bg-indigo-500
             active:bg-indigo-700
             text-white
@@ -121,14 +129,14 @@ export default function Dashboard() {
           "
         >
           <Plus className="h-4 w-4" />
-          New Deployment
+          New Project
         </Link>
       </div>
 
       {/* Stats Board */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-        <StatCard title="Total" value={total} />
-        <StatCard title="Success" value={success} />
+        <StatCard title="Total Projects" value={total} />
+        <StatCard title="Healthy" value={success} />
         <StatCard title="Running" value={running} />
         <StatCard title="Failed" value={failed} />
       </div>
@@ -140,7 +148,7 @@ export default function Dashboard() {
         </div>
         <input
           type="text"
-          placeholder="Search deployments by ID, repository, or branch..."
+          placeholder="Search projects by name, repository, or branch..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="
@@ -168,9 +176,9 @@ export default function Dashboard() {
 
       {/* Core Grid */}
       <div className="grid lg:grid-cols-3 gap-6 mt-8">
-        {/* Deployments List */}
+        {/* Projects List */}
         <div className="lg:col-span-2">
-          {filteredDeployments.length === 0 ? (
+          {filteredProjects.length === 0 ? (
             <div
               className="
                 bg-zinc-900/20
@@ -183,21 +191,21 @@ export default function Dashboard() {
               "
             >
               <div className="w-12 h-12 rounded-full bg-zinc-800/40 flex items-center justify-center mx-auto mb-4 border border-zinc-850">
-                <Search className="h-5 w-5 text-zinc-500" />
+                <FolderGit className="h-5 w-5 text-zinc-500" />
               </div>
               <h3 className="text-lg font-bold text-zinc-200">
-                No deployments found
+                No projects found
               </h3>
               <p className="text-zinc-500 text-sm mt-1.5 max-w-sm mx-auto">
-                No active runs match your search filters. Try verifying your terms or create a new deploy.
+                No active projects match your search filters. Connect a new repository to get started.
               </p>
             </div>
           ) : (
             <div className="grid gap-4.5">
-              {filteredDeployments.map((deployment) => (
-                <DeploymentCard
-                  key={deployment.id}
-                  deployment={deployment}
+              {filteredProjects.map((project) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
                 />
               ))}
             </div>
