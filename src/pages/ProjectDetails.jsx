@@ -12,6 +12,9 @@ export default function ProjectDetails() {
   const [deployments, setDeployments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deploying, setDeploying] = useState(false);
+  const [isEditingEnv, setIsEditingEnv] = useState(false);
+  const [envStr, setEnvStr] = useState("");
+  const [savingEnv, setSavingEnv] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,6 +39,64 @@ export default function ProjectDetails() {
     }
   }
 
+  useEffect(() => {
+    if (project && !isEditingEnv) {
+      const envVars = project.env_variables || {};
+      const str = Object.entries(envVars)
+        .map(([k, v]) => `${k}=${v}`)
+        .join("\n");
+      setEnvStr(str);
+    }
+  }, [project, isEditingEnv]);
+
+  const handleCancelEnvEdit = () => {
+    setIsEditingEnv(false);
+    if (project) {
+      const envVars = project.env_variables || {};
+      const str = Object.entries(envVars)
+        .map(([k, v]) => `${k}=${v}`)
+        .join("\n");
+      setEnvStr(str);
+    }
+  };
+
+  const handleSaveEnv = async () => {
+    setSavingEnv(true);
+    try {
+      const envVariables = {};
+      if (envStr.trim()) {
+        envStr.split("\n").forEach((line) => {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) return;
+          const index = trimmed.indexOf("=");
+          if (index !== -1) {
+            const k = trimmed.substring(0, index).trim();
+            let v = trimmed.substring(index + 1).trim();
+            if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+              v = v.substring(1, v.length - 1);
+            }
+            if (k) envVariables[k] = v;
+          }
+        });
+      }
+
+      const response = await api.put(`/projects/${id}/env`, {
+        envVariables
+      });
+
+      if (response.data?.success) {
+        toast.success("Environment variables saved successfully!");
+        setIsEditingEnv(false);
+        fetchProjectDetails();
+      }
+    } catch (error) {
+      console.error("Failed to save environment variables:", error);
+      toast.error(error.response?.data?.message || "Failed to update environment variables");
+    } finally {
+      setSavingEnv(false);
+    }
+  };
+
   const handleManualDeploy = async () => {
     setDeploying(true);
     try {
@@ -51,6 +112,21 @@ export default function ProjectDetails() {
       toast.error(error.response?.data?.message || "Failed to trigger deployment");
     } finally {
       setDeploying(false);
+    }
+  };
+
+  const handleRollback = async (targetDeploymentId) => {
+    if (confirm("Are you sure you want to rollback to this deployment version?")) {
+      try {
+        const response = await api.post(`/projects/${id}/deployments/${targetDeploymentId}/rollback`);
+        if (response.data?.success) {
+          toast.success("Rollback triggered successfully!");
+          fetchProjectDetails();
+        }
+      } catch (error) {
+        console.error("Rollback failed:", error);
+        toast.error(error.response?.data?.message || "Failed to trigger rollback");
+      }
     }
   };
 
@@ -221,6 +297,64 @@ export default function ProjectDetails() {
         </div>
       </div>
 
+      {/* Environment Variables Card */}
+      <div className="bg-zinc-900/30 backdrop-blur-sm border border-zinc-850 p-6 rounded-2xl mt-6">
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-850">
+          <h3 className="text-sm font-bold text-zinc-200 uppercase tracking-wider">Environment Variables</h3>
+          {!isEditingEnv ? (
+            <button
+              onClick={() => setIsEditingEnv(true)}
+              className="px-3 py-1.5 bg-zinc-950 border border-zinc-850 hover:border-zinc-700 text-zinc-350 hover:text-zinc-200 text-xs font-semibold rounded-lg transition cursor-pointer"
+            >
+              Edit Variables
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleCancelEnvEdit}
+                disabled={savingEnv}
+                className="px-3 py-1.5 bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 text-zinc-400 text-xs font-semibold rounded-lg transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEnv}
+                disabled={savingEnv}
+                className="px-3 py-1.5 bg-indigo-650 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow transition cursor-pointer disabled:bg-indigo-880/40 disabled:text-zinc-500"
+              >
+                {savingEnv ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {isEditingEnv ? (
+          <textarea
+            value={envStr}
+            onChange={(e) => setEnvStr(e.target.value)}
+            rows={6}
+            placeholder="KEY=value"
+            className="w-full bg-zinc-950/80 border border-zinc-800 focus:border-indigo-500/50 rounded-xl p-4 text-zinc-200 font-mono text-sm outline-none transition-all duration-200"
+          />
+        ) : (
+          <div>
+            {Object.keys(project?.env_variables || {}).length === 0 ? (
+              <p className="text-zinc-500 text-xs italic">No environment variables set.</p>
+            ) : (
+               <div className="grid gap-2 max-h-48 overflow-y-auto pr-2">
+                 {Object.entries(project.env_variables).map(([k, v]) => (
+                   <div key={k} className="flex items-center gap-2 py-1.5 px-3 bg-zinc-950/60 border border-zinc-900/60 rounded-lg text-xs font-mono">
+                     <span className="text-indigo-400 font-semibold">{k}</span>
+                     <span className="text-zinc-500">=</span>
+                     <span className="text-zinc-300 truncate" title={v}>{v}</span>
+                   </div>
+                 ))}
+               </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Deployments List */}
       <div className="mt-10">
         <h2 className="text-xl font-extrabold tracking-tight text-white mb-6 flex items-center gap-2">
@@ -238,16 +372,24 @@ export default function ProjectDetails() {
           </div>
         ) : (
           <div className="grid gap-4">
-            {deployments.map((dep) => (
-              <DeploymentCard
-                key={dep.id}
-                deployment={{
-                  ...dep,
-                  repo_url: project.repo_url,
-                  branch: project.branch
-                }}
-              />
-            ))}
+            {(() => {
+              const latestSuccessDep = deployments.find((d) => d.status === "SUCCESS");
+              return deployments.map((dep) => (
+                <DeploymentCard
+                  key={dep.id}
+                  deployment={{
+                    ...dep,
+                    repo_url: project.repo_url,
+                    branch: project.branch
+                  }}
+                  onRollback={
+                    latestSuccessDep && dep.id !== latestSuccessDep.id
+                      ? (e, targetDep) => handleRollback(targetDep.id)
+                      : null
+                  }
+                />
+              ));
+            })()}
           </div>
         )}
       </div>

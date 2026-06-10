@@ -5,6 +5,7 @@ import {
   GitCommit, FolderOpen, ExternalLink, Search, Terminal, ArrowDown 
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { io } from "socket.io-client";
 import MainLayout from "../layouts/MainLayout";
 import StatusBadge from "../components/StatusBadge";
 import api, { getBackendHost } from "../services/api";
@@ -27,8 +28,20 @@ export default function DeploymentDetails() {
 
   useEffect(() => {
     fetchLogs();
-    const interval = setInterval(fetchLogs, 2000);
-    return () => clearInterval(interval);
+
+    const socketUrl = getBackendHost() || window.location.origin;
+    const socket = io(socketUrl);
+
+    socket.emit("join", `deployment:${id}`);
+
+    socket.on("log", (logLine) => {
+      setLogs((prevLogs) => [...prevLogs, { log: logLine }]);
+    });
+
+    return () => {
+      socket.emit("leave", `deployment:${id}`);
+      socket.disconnect();
+    };
   }, [id]);
 
   // Auto scroll logs to bottom when they update
@@ -166,7 +179,11 @@ export default function DeploymentDetails() {
           </button>
 
           <a
-            href={`${getBackendHost()}/api/v1/deployments/${id}`}
+            href={
+              deployment?.type === "SERVER" || deployment?.type === "DOCKERFILE"
+                ? `http://${window.location.hostname}:${deployment?.assigned_port}`
+                : `${getBackendHost()}/api/v1/deployments/${id}`
+            }
             target="_blank"
             rel="noreferrer"
             className="
@@ -233,16 +250,39 @@ export default function DeploymentDetails() {
           </div>
         </div>
 
-        {/* Directory Card */}
+        {/* Output Info Card */}
         <div className="bg-zinc-900/30 backdrop-blur-sm border border-zinc-850 p-5 rounded-2xl flex items-start gap-4">
           <div className="p-2.5 bg-zinc-950 border border-zinc-850 rounded-xl text-zinc-400">
             <FolderOpen className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Output Folder</p>
-            <p className="text-sm font-semibold text-zinc-200 mt-1 truncate">
-              {deployment?.output_directory || "dist"}
-            </p>
+            {deployment?.type === "SERVER" || deployment?.type === "DOCKERFILE" ? (
+              <>
+                <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Active Port</p>
+                <p className="text-sm font-semibold text-zinc-200 mt-1 truncate">
+                  {deployment?.assigned_port ? (
+                    <a
+                      href={`http://${window.location.hostname}:${deployment.assigned_port}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-indigo-400 hover:text-indigo-300 underline inline-flex items-center gap-1"
+                    >
+                      Port {deployment.assigned_port}
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  ) : (
+                    "Allocating..."
+                  )}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Output Folder</p>
+                <p className="text-sm font-semibold text-zinc-200 mt-1 truncate">
+                  {deployment?.output_directory || "dist"}
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>

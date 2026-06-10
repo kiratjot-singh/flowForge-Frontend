@@ -3,7 +3,8 @@ import { GitBranch, GitCommit, Folder, Calendar, ArrowRight } from "lucide-react
 import StatusBadge from "./StatusBadge";
 
 export default function DeploymentCard({
-  deployment
+  deployment,
+  onRollback
 }) {
   const getRepoName = (url) => {
     if (!url) return "unknown/repository";
@@ -90,6 +91,31 @@ export default function DeploymentCard({
           </div>
 
           <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+            {onRollback && deployment.status === "SUCCESS" && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onRollback(e, deployment);
+                }}
+                className="
+                  px-3
+                  py-1.5
+                  bg-indigo-650
+                  hover:bg-indigo-500
+                  active:bg-indigo-700
+                  text-white
+                  text-[11px]
+                  font-bold
+                  rounded-lg
+                  transition
+                  cursor-pointer
+                  z-10
+                "
+              >
+                Rollback
+              </button>
+            )}
             <StatusBadge status={deployment.status} />
             <ArrowRight className="h-4 w-4 text-zinc-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300 hidden sm:block" />
           </div>

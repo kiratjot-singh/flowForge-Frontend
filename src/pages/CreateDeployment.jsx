@@ -9,6 +9,7 @@ export default function CreateDeployment() {
   const [name, setName] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
   const [branch, setBranch] = useState("main");
+  const [envStr, setEnvStr] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -22,10 +23,28 @@ export default function CreateDeployment() {
     setLoading(true);
 
     try {
+      const envVariables = {};
+      if (envStr.trim()) {
+        envStr.split("\n").forEach((line) => {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) return;
+          const index = trimmed.indexOf("=");
+          if (index !== -1) {
+            const k = trimmed.substring(0, index).trim();
+            let v = trimmed.substring(index + 1).trim();
+            if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+              v = v.substring(1, v.length - 1);
+            }
+            if (k) envVariables[k] = v;
+          }
+        });
+      }
+
       const response = await api.post("/projects", {
         name,
         repoUrl,
-        branch
+        branch,
+        envVariables
       });
 
       if (response.data?.success) {
@@ -178,6 +197,40 @@ export default function CreateDeployment() {
                 "
               />
             </div>
+          </div>
+
+          {/* Environment Variables Input */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider">
+              Environment Variables (.env format)
+            </label>
+            <textarea
+              placeholder="DATABASE_URL=postgresql://user:pass@host:port/db&#10;API_KEY=your_api_key"
+              value={envStr}
+              onChange={(e) => setEnvStr(e.target.value)}
+              rows={5}
+              className="
+                w-full
+                bg-zinc-950/60
+                focus:bg-zinc-950
+                border
+                border-zinc-800
+                focus:border-indigo-500/50
+                rounded-xl
+                px-4
+                py-3
+                text-zinc-200
+                placeholder-zinc-650
+                text-sm
+                font-mono
+                outline-none
+                transition-all
+                duration-200
+              "
+            />
+            <span className="block text-[11px] text-zinc-500">
+              Set environment variables that your server requires at build-time and runtime.
+            </span>
           </div>
 
           {/* Form Actions */}
