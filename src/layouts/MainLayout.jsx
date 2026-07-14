@@ -5,7 +5,7 @@ export default function MainLayout({
   children
 }) {
   return (
-    <div className="min-h-screen bg-[#030303] text-[#f4f4f5] flex flex-col font-sans antialiased">
+    <div className="min-h-screen text-[#f4f4f5] flex flex-col font-sans antialiased">
       
       {/* Dynamic Background Mesh & Glows */}
       <div className="fixed inset-0 -z-10 overflow-hidden bg-grid-pattern pointer-events-none">
@@ -17,20 +17,20 @@ export default function MainLayout({
           -translate-x-1/2
           w-[1000px]
           h-[600px]
-          bg-gradient-to-b from-indigo-500/10 to-violet-500/5
+          bg-gradient-to-b from-indigo-500/12 to-cyan-500/5
           blur-[130px]
           rounded-full
           pulse-glow-effect
         " />
         
-        {/* Bottom Right Fuchsia Glow */}
+        {/* Bottom Right Emerald Glow */}
         <div className="
           absolute
           bottom-[-10%]
           right-[-10%]
           w-[600px]
           h-[600px]
-          bg-fuchsia-500/5
+          bg-emerald-500/8
           blur-[150px]
           rounded-full
         " />

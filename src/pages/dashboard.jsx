@@ -179,17 +179,7 @@ export default function Dashboard() {
         {/* Projects List */}
         <div className="lg:col-span-2">
           {filteredProjects.length === 0 ? (
-            <div
-              className="
-                bg-zinc-900/20
-                border
-                border-zinc-800/60
-                rounded-2xl
-                p-12
-                text-center
-                backdrop-blur-sm
-              "
-            >
+            <div className="glass-panel p-12 text-center">
               <div className="w-12 h-12 rounded-full bg-zinc-800/40 flex items-center justify-center mx-auto mb-4 border border-zinc-850">
                 <FolderGit className="h-5 w-5 text-zinc-500" />
               </div>

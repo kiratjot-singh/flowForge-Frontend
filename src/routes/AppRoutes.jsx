@@ -9,6 +9,7 @@ import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import ProtectedRoute from "../components/ProtectedRoute";
 import ProjectDetails from "../pages/ProjectDetails";
+import HealthMetrics from "../pages/HealthMetrics";
 
 export default function AppRoutes() {
   return (
@@ -40,6 +41,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <DeploymentDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/deployments/:id/health-metrics"
+        element={
+          <ProtectedRoute>
+            <HealthMetrics />
           </ProtectedRoute>
         }
       />

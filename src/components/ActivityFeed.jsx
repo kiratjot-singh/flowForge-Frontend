@@ -39,11 +39,7 @@ export default function ActivityFeed({
   return (
     <div
       className="
-        bg-zinc-900/40
-        backdrop-blur-sm
-        border
-        border-zinc-800/80
-        rounded-2xl
+        glass-panel
         p-5
         h-fit
       "

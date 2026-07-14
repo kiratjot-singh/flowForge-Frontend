@@ -116,6 +116,15 @@ export default function DeploymentCard({
                 Rollback
               </button>
             )}
+            {deployment.status === "SUCCESS" && (
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold border shrink-0 ${
+                deployment.is_active 
+                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" 
+                  : "bg-zinc-950 border-zinc-900 text-zinc-550"
+              }`}>
+                {deployment.is_active ? "ACTIVE" : "SUPERSEDED"}
+              </span>
+            )}
             <StatusBadge status={deployment.status} />
             <ArrowRight className="h-4 w-4 text-zinc-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300 hidden sm:block" />
           </div>

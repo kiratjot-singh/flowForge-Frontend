@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Globe, RefreshCw, Trash2, GitFork, GitBranch, Terminal } from "lucide-react";
+import { ArrowLeft, Globe, RefreshCw, Trash2, GitFork, GitBranch, Terminal, FolderOpen } from "lucide-react";
 import toast from "react-hot-toast";
 import MainLayout from "../layouts/MainLayout";
 import DeploymentCard from "../components/DeploymentCard";
-import api from "../services/api";
+import api, { getBackendHost } from "../services/api";
 
 export default function ProjectDetails() {
   const { id } = useParams();
@@ -16,6 +16,53 @@ export default function ProjectDetails() {
   const [envStr, setEnvStr] = useState("");
   const [savingEnv, setSavingEnv] = useState(false);
   const navigate = useNavigate();
+  const [showSecret, setShowSecret] = useState(false);
+  const [togglingSettings, setTogglingSettings] = useState(false);
+  const [isEditingRootDir, setIsEditingRootDir] = useState(false);
+  const [rootDirInput, setRootDirInput] = useState("");
+
+  const handleCopyValue = (val, label) => {
+    if (val) {
+      navigator.clipboard.writeText(val);
+      toast.success(`${label} copied to clipboard!`);
+    }
+  };
+
+  const handleToggleAutoDeploy = async () => {
+    setTogglingSettings(true);
+    try {
+      const response = await api.put(`/projects/${id}/settings`, {
+        autoDeployEnabled: !project?.auto_deploy_enabled
+      });
+      if (response.data?.success) {
+        toast.success(
+          `Auto-deployment ${!project?.auto_deploy_enabled ? "enabled" : "disabled"} successfully!`
+        );
+        fetchProjectDetails();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update project settings");
+    } finally {
+      setTogglingSettings(false);
+    }
+  };
+
+  const handleSaveRootDir = async () => {
+    try {
+      const response = await api.put(`/projects/${id}/settings`, {
+        rootDirectory: rootDirInput.trim()
+      });
+      if (response.data?.success) {
+        toast.success("Root directory updated successfully!");
+        fetchProjectDetails();
+        setIsEditingRootDir(false);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to update root directory");
+    }
+  };
 
   useEffect(() => {
     fetchProjectDetails();
@@ -260,7 +307,7 @@ export default function ProjectDetails() {
       {/* Details Grid */}
       <div className="grid md:grid-cols-2 gap-4 mt-8">
         {/* Repo Card */}
-        <div className="bg-zinc-900/30 backdrop-blur-sm border border-zinc-850 p-5 rounded-2xl flex items-start gap-4">
+        <div className="glass-panel p-5 flex items-start gap-4">
           <div className="p-2.5 bg-zinc-950 border border-zinc-850 rounded-xl text-zinc-400">
             <GitFork className="h-5 w-5" />
           </div>
@@ -281,7 +328,7 @@ export default function ProjectDetails() {
         </div>
 
         {/* Branch Card */}
-        <div className="bg-zinc-900/30 backdrop-blur-sm border border-zinc-850 p-5 rounded-2xl flex items-start gap-4">
+        <div className="glass-panel p-5 flex items-start gap-4">
           <div className="p-2.5 bg-zinc-950 border border-zinc-850 rounded-xl text-zinc-400">
             <GitBranch className="h-5 w-5" />
           </div>
@@ -297,8 +344,132 @@ export default function ProjectDetails() {
         </div>
       </div>
 
+      {/* GitHub Webhook Settings Card */}
+      <div className="glass-panel p-6 mt-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-3 border-b border-zinc-850">
+          <div>
+            <h3 className="text-sm font-bold text-zinc-200 uppercase tracking-wider">GitHub Webhook & Auto-Deploy</h3>
+            <p className="text-[11px] text-zinc-550 mt-1">Configure your GitHub repo to trigger automatic builds on git push events.</p>
+          </div>
+          
+          <button
+            onClick={handleToggleAutoDeploy}
+            disabled={togglingSettings}
+            className={`px-3.5 py-1.5 border text-xs font-semibold rounded-xl transition cursor-pointer disabled:cursor-not-allowed ${
+              project?.auto_deploy_enabled 
+                ? "bg-emerald-500/10 border-emerald-500/35 text-emerald-400 hover:bg-emerald-500/20" 
+                : "bg-zinc-950 border-zinc-850 text-zinc-450 hover:text-zinc-350"
+            }`}
+          >
+            {project?.auto_deploy_enabled ? "Auto-Deploy: Enabled" : "Auto-Deploy: Disabled"}
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">Payload URL</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                readOnly
+                value={`${getBackendHost()}/api/v1/webhooks/github/${id}`}
+                className="flex-1 bg-zinc-950/60 border border-zinc-900 focus:border-indigo-500/30 rounded-lg py-2 px-3 text-xs font-mono text-zinc-300 outline-none select-all"
+              />
+              <button
+                onClick={() => handleCopyValue(`${getBackendHost()}/api/v1/webhooks/github/${id}`, "Payload URL")}
+                className="px-3.5 py-2 bg-zinc-950 border border-zinc-850 hover:border-zinc-700 text-zinc-400 hover:text-zinc-250 text-xs font-semibold rounded-lg transition cursor-pointer"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Secret Token</label>
+              <button
+                onClick={() => setShowSecret(!showSecret)}
+                className="text-[10px] text-indigo-400 hover:underline font-semibold"
+              >
+                {showSecret ? "Hide Secret" : "Reveal Secret"}
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type={showSecret ? "text" : "password"}
+                readOnly
+                value={project?.webhook_secret || "No secret set"}
+                className="flex-1 bg-zinc-950/60 border border-zinc-900 focus:border-indigo-500/30 rounded-lg py-2 px-3 text-xs font-mono text-zinc-300 outline-none"
+              />
+              {project?.webhook_secret && (
+                <button
+                  onClick={() => handleCopyValue(project.webhook_secret, "Webhook Secret")}
+                  className="px-3.5 py-2 bg-zinc-950 border border-zinc-850 hover:border-zinc-700 text-zinc-400 hover:text-zinc-250 text-xs font-semibold rounded-lg transition cursor-pointer"
+                >
+                  Copy
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Root Directory Settings Card */}
+      <div className="glass-panel p-6 mt-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-3 border-b border-zinc-850">
+          <div>
+            <h3 className="text-sm font-bold text-zinc-200 uppercase tracking-wider">Root Directory</h3>
+            <p className="text-[11px] text-zinc-550 mt-1">Specify a subdirectory inside the repository to build and deploy from (useful for monorepos).</p>
+          </div>
+          
+          {!isEditingRootDir ? (
+            <button
+              onClick={() => {
+                setRootDirInput(project?.root_directory || "");
+                setIsEditingRootDir(true);
+              }}
+              className="px-3 py-1.5 bg-zinc-950 border border-zinc-850 hover:border-zinc-700 text-zinc-355 hover:text-zinc-200 text-xs font-semibold rounded-lg transition cursor-pointer"
+            >
+              Edit Root Directory
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsEditingRootDir(false)}
+                className="px-3 py-1.5 bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 text-zinc-400 text-xs font-semibold rounded-lg transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveRootDir}
+                className="px-3 py-1.5 bg-indigo-650 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow transition cursor-pointer"
+              >
+                Save
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div>
+          {isEditingRootDir ? (
+            <input
+              type="text"
+              value={rootDirInput}
+              onChange={(e) => setRootDirInput(e.target.value)}
+              placeholder="e.g. backend (leave empty for root)"
+              className="w-full bg-zinc-950/80 border border-zinc-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-zinc-200 font-mono text-sm outline-none transition-all duration-200"
+            />
+          ) : (
+            <div className="flex items-center gap-2 py-2 px-3 bg-zinc-950/60 border border-zinc-900/60 rounded-xl text-xs font-mono">
+              <span className="text-zinc-500">Current Root Directory:</span>
+              <span className="text-zinc-300 font-semibold">{project?.root_directory || "(Repository Root / Empty)"}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Environment Variables Card */}
-      <div className="bg-zinc-900/30 backdrop-blur-sm border border-zinc-850 p-6 rounded-2xl mt-6">
+      <div className="glass-panel p-6 mt-6">
         <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-850">
           <h3 className="text-sm font-bold text-zinc-200 uppercase tracking-wider">Environment Variables</h3>
           {!isEditingEnv ? (
@@ -363,7 +534,7 @@ export default function ProjectDetails() {
         </h2>
 
         {deployments.length === 0 ? (
-          <div className="bg-zinc-900/10 border border-zinc-850/60 rounded-2xl p-12 text-center backdrop-blur-sm">
+          <div className="glass-panel p-12 text-center">
             <Terminal className="h-6 w-6 text-zinc-500 mx-auto mb-3 opacity-30" />
             <h3 className="text-sm font-bold text-zinc-300">No deployments run</h3>
             <p className="text-zinc-500 text-xs mt-1">

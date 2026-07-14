@@ -3,6 +3,21 @@
 @theme {
   --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-indigo-50: #ecfeff;
+  --color-indigo-100: #cffafe;
+  --color-indigo-200: #a5f3fc;
+  --color-indigo-300: #67e8f9;
+  --color-indigo-400: #22d3ee;
+  --color-indigo-500: #06b6d4;
+  --color-indigo-600: #0891b2;
+  --color-indigo-650: #0891b2;
+  --color-indigo-700: #0e7490;
+  --color-indigo-800: #155e75;
+  --color-indigo-880: #164e63;
+  --color-indigo-900: #164e63;
+  
+  --color-rose-455: #10b981;
 }
 
 html,
@@ -14,7 +29,9 @@ body,
 
 body {
   margin: 0;
-  background: #030303;
+  background: radial-gradient(circle at 10% 10%, rgba(6, 182, 212, 0.12) 0%, transparent 40%),
+              radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+              #080e1a;
   color: #FAFAFA;
   font-family: var(--font-sans);
   overflow-x: hidden;
@@ -34,10 +51,11 @@ body {
 
 /* Glassmorphism card utilities */
 .glass-panel {
-  background: rgba(9, 9, 11, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(13, 23, 42, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
 .glass-panel-hover {
@@ -45,10 +63,60 @@ body {
 }
 
 .glass-panel-hover:hover {
-  background: rgba(15, 15, 20, 0.85);
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.15);
+  background: rgba(18, 32, 60, 0.6);
+  border-color: rgba(6, 182, 212, 0.4);
+  box-shadow: 0 10px 30px -10px rgba(6, 182, 212, 0.2);
   transform: translateY(-2px);
+}
+
+/* Premium Glassmorphic Inputs */
+input[type="text"],
+input[type="url"],
+input[type="password"],
+textarea,
+select {
+  background: rgba(10, 20, 40, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+input[type="text"]:focus,
+input[type="url"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
+  background: rgba(12, 24, 48, 0.6) !important;
+  border-color: rgba(6, 182, 212, 0.5) !important;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.15) !important;
+}
+
+/* Glassmorphic Select dropdown lists */
+select option {
+  background: #0d172a !important;
+  color: #e2e8f0 !important;
+}
+
+/* Gradient Primary Buttons */
+button[type="submit"],
+.bg-indigo-650 {
+  background: linear-gradient(135deg, #0284c7 0%, #06b6d4 50%, #10b981 100%) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25) !important;
+}
+
+button[type="submit"]:hover,
+.bg-indigo-650:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+button[type="submit"]:disabled,
+.bg-indigo-650:disabled {
+  background: rgba(255, 255, 255, 0.05) !important;
+  box-shadow: none !important;
+  color: rgba(255, 255, 255, 0.3) !important;
 }
 
 /* Custom terminal scrollbars */

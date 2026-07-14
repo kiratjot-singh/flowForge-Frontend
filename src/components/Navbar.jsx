@@ -55,12 +55,11 @@ export default function Navbar() {
       "
     >
       <Link to="/" className="flex items-center gap-2.5 group">
-        <div className="p-2 bg-indigo-500/10 rounded-xl border border-indigo-500/20 group-hover:border-indigo-500/40 transition duration-300">
-          <Cpu className="h-5 w-5 text-indigo-400 group-hover:rotate-12 transition duration-300" />
-        </div>
-        <h1 className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
-          FlowForge
-        </h1>
+        <img 
+          src="/logo.png" 
+          alt="FlowForge Logo" 
+          className="h-10 w-auto group-hover:scale-[1.02] transition duration-300" 
+        />
       </Link>
 
       <div className="flex items-center gap-4">

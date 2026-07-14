@@ -68,9 +68,11 @@ export default function Signup() {
         {/* Brand Header */}
         <div className="text-center">
           <Link to="/welcome" className="inline-flex items-center gap-2.5 group">
-            <div className="p-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20 group-hover:border-indigo-500/40 transition duration-300">
-              <Cpu className="h-6 w-6 text-indigo-400 group-hover:rotate-12 transition duration-300" />
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="FlowForge Logo" 
+              className="h-12 w-auto group-hover:scale-[1.02] transition duration-300" 
+            />
           </Link>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-white">
             Get started

@@ -32,24 +32,14 @@ export default function ProjectCard({ project }) {
     <Link to={`/projects/${project.id}`} className="block group">
       <div
         className="
-          bg-zinc-900/40
-          backdrop-blur-sm
-          border
-          border-zinc-800/80
-          rounded-2xl
-          p-5
-          hover:border-zinc-700/80
-          hover:bg-zinc-900/60
-          hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)]
-          hover:translate-y-[-2px]
-          transition-all
-          duration-300
+          glass-panel
+          glass-panel-hover
+          p-6
           cursor-pointer
           relative
           overflow-hidden
         "
       >
-        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-3 min-w-0">

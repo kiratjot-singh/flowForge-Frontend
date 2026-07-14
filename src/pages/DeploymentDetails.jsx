@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, Globe, RefreshCw, Copy, GitFork, GitBranch, 
-  GitCommit, FolderOpen, ExternalLink, Search, Terminal, ArrowDown 
+  GitCommit, FolderOpen, ExternalLink, Search, Terminal, ArrowDown, Activity, Trash2
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
@@ -12,6 +12,7 @@ import api, { getBackendHost } from "../services/api";
 
 export default function DeploymentDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   
   const [deployment, setDeployment] = useState(null);
   const [logs, setLogs] = useState([]);
@@ -78,6 +79,21 @@ export default function DeploymentDetails() {
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(`${getBackendHost()}/api/v1/deployments/${id}`);
     toast.success("URL copied to clipboard!");
+  };
+
+  const handleDeleteDeployment = async () => {
+    if (confirm("Are you sure you want to delete this deployment run? This will delete all files, build logs, and stop the container if active.")) {
+      try {
+        const response = await api.delete(`/deployments/${id}`);
+        if (response.data?.success) {
+          toast.success("Deployment deleted successfully");
+          navigate(`/projects/${deployment.project_id}`);
+        }
+      } catch (error) {
+        console.error("Failed to delete deployment:", error);
+        toast.error(error.response?.data?.message || "Failed to delete deployment");
+      }
+    }
   };
 
   const handleCopyLogs = () => {
@@ -152,6 +168,31 @@ export default function DeploymentDetails() {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <Link
+            to={`/deployments/${id}/health-metrics`}
+            className="
+              inline-flex
+              items-center
+              gap-2
+              px-4
+              py-2.5
+              bg-zinc-900/60
+              hover:bg-zinc-900
+              border
+              border-zinc-800
+              hover:border-zinc-700
+              text-indigo-400
+              hover:text-indigo-305
+              text-xs
+              font-semibold
+              rounded-xl
+              transition
+              cursor-pointer
+            "
+          >
+            <Activity className="h-3.5 w-3.5" />
+            View Health Metrics
+          </Link>
           <button
             onClick={handleCopyUrl}
             className="
@@ -178,23 +219,21 @@ export default function DeploymentDetails() {
             Copy Deployment URL
           </button>
 
-          <a
-            href={
-              deployment?.type === "SERVER" || deployment?.type === "DOCKERFILE"
-                ? `http://${window.location.hostname}:${deployment?.assigned_port}`
-                : `${getBackendHost()}/api/v1/deployments/${id}`
-            }
-            target="_blank"
-            rel="noreferrer"
+          <button
+            onClick={handleDeleteDeployment}
             className="
               inline-flex
               items-center
               gap-2
               px-4
               py-2.5
-              bg-white
-              hover:bg-zinc-200
-              text-black
+              bg-zinc-900/60
+              hover:bg-rose-950/30
+              border
+              border-zinc-800
+              hover:border-rose-900/50
+              text-zinc-350
+              hover:text-rose-400
               text-xs
               font-semibold
               rounded-xl
@@ -202,10 +241,63 @@ export default function DeploymentDetails() {
               cursor-pointer
             "
           >
-            <Globe className="h-3.5 w-3.5" />
-            View Live Deployment
-            <ExternalLink className="h-3.5 w-3.5 ml-0.5 opacity-60" />
-          </a>
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete Run
+          </button>
+
+          {deployment?.is_active ? (
+            <a
+              href={
+                deployment?.type === "SERVER" || deployment?.type === "DOCKERFILE"
+                  ? `http://${window.location.hostname}:${deployment?.assigned_port}`
+                  : `${getBackendHost()}/api/v1/deployments/${id}`
+              }
+              target="_blank"
+              rel="noreferrer"
+              className="
+                inline-flex
+                items-center
+                gap-2
+                px-4
+                py-2.5
+                bg-white
+                hover:bg-zinc-200
+                text-black
+                text-xs
+                font-semibold
+                rounded-xl
+                transition
+                cursor-pointer
+              "
+            >
+              <Globe className="h-3.5 w-3.5" />
+              View Live Deployment
+              <ExternalLink className="h-3.5 w-3.5 ml-0.5 opacity-60" />
+            </a>
+          ) : (
+            <button
+              disabled
+              className="
+                inline-flex
+                items-center
+                gap-2
+                px-4
+                py-2.5
+                bg-zinc-950
+                border
+                border-zinc-850
+                text-zinc-500
+                text-xs
+                font-semibold
+                rounded-xl
+                cursor-not-allowed
+              "
+              title="This version is superseded by a newer deployment. Click 'Rollback' on project dashboard to reactivate."
+            >
+              <Globe className="h-3.5 w-3.5 opacity-40" />
+              Superseded Version
+            </button>
+          )}
         </div>
       </div>
 
@@ -260,7 +352,9 @@ export default function DeploymentDetails() {
               <>
                 <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Active Port</p>
                 <p className="text-sm font-semibold text-zinc-200 mt-1 truncate">
-                  {deployment?.assigned_port ? (
+                  {!deployment?.is_active ? (
+                    <span className="text-zinc-500 italic text-xs">Superseded</span>
+                  ) : deployment?.assigned_port ? (
                     <a
                       href={`http://${window.location.hostname}:${deployment.assigned_port}`}
                       target="_blank"

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GitBranch, GitFork, ArrowRight, Loader2, Info } from "lucide-react";
+import { GitBranch, GitFork, ArrowRight, Loader2, Info, FolderOpen } from "lucide-react";
 import toast from "react-hot-toast";
 import MainLayout from "../layouts/MainLayout";
 import api from "../services/api";
@@ -9,6 +9,7 @@ export default function CreateDeployment() {
   const [name, setName] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
   const [branch, setBranch] = useState("main");
+  const [rootDirectory, setRootDirectory] = useState("");
   const [envStr, setEnvStr] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -44,6 +45,7 @@ export default function CreateDeployment() {
         name,
         repoUrl,
         branch,
+        rootDirectory: rootDirectory.trim(),
         envVariables
       });
 
@@ -197,6 +199,45 @@ export default function CreateDeployment() {
                 "
               />
             </div>
+          </div>
+
+          {/* Root Directory Input */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider">
+              Root Directory (Optional Monorepo Sub-folder)
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+                <FolderOpen className="h-4.5 w-4.5" />
+              </div>
+              <input
+                type="text"
+                placeholder="e.g. backend (leave empty for root)"
+                value={rootDirectory}
+                onChange={(e) => setRootDirectory(e.target.value)}
+                className="
+                  w-full
+                  bg-zinc-950/60
+                  focus:bg-zinc-950
+                  border
+                  border-zinc-800
+                  focus:border-indigo-500/50
+                  rounded-xl
+                  pl-11
+                  pr-4
+                  py-3
+                  text-zinc-200
+                  placeholder-zinc-650
+                  text-sm
+                  outline-none
+                  transition-all
+                  duration-200
+                "
+              />
+            </div>
+            <span className="block text-[11px] text-zinc-500">
+              If your code is in a monorepo sub-folder, specify it here so FlowForge builds inside that subdirectory.
+            </span>
           </div>
 
           {/* Environment Variables Input */}
